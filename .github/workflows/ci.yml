@@ -31,10 +31,7 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: |
           C:\msys64\usr\bin\bash -lc "pacman -S --noconfirm mingw-w64-x86_64-lua"
-
-      - name: Run Mise CI
-        uses: jdx/mise-action@v3
-        with:
-            github_token: ${{ secrets.GITHUB_TOKEN }}
-
+      - uses: jdx/mise-action@v2
       - run: mise run ci
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
