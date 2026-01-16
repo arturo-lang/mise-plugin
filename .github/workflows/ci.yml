@@ -23,12 +23,26 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1
+      - name: Setup MSYS2
+        if: matrix.os == 'windows-latest'
+        uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          install: base-devel
       - name: Install Windows deps (Lua 5.4)
         if: matrix.os == 'windows-latest'
+        shell: msys2 {0}
         run: |
-          C:\msys64\usr\bin\bash -lc "pacman -S --noconfirm mingw-w64-x86_64-lua"
+          pacman -S --noconfirm mingw-w64-x86_64-lua
       - uses: jdx/mise-action@v2
-      - run: mise run ci
-        shell: bash
+      - name: Run CI (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: msys2 {0}
+        run: mise run ci
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run CI (macOS/Linux)
+        if: matrix.os != 'windows-latest'
+        run: mise run ci
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
