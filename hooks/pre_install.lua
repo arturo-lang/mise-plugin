@@ -10,8 +10,8 @@ function PLUGIN:PreInstall(ctx)
     -- local url = "https://github.com/arturo-lang/arturo/releases/download/v" .. version .. "/arturo-linux-amd64"
 
     -- Example 2: Platform-specific binary
-    -- local platform = get_platform() -- Uncomment the helper function above
-    -- local url = "https://github.com/arturo-lang/arturo/releases/download/v" .. version .. "/arturo-" .. platform
+    local platform = get_platform() -- Uncomment the helper function above
+    local url = "https://github.com/arturo-lang/arturo/releases/download/v" .. version .. "/arturo-" .. version .. "-" .. platform .. ".zip"
 
     -- Example 3: Archive (tar.gz, zip) - mise will extract automatically
     -- local url = "https://github.com/arturo-lang/arturo/releases/download/v" .. version .. "/arturo-" .. version .. "-linux-amd64.tar.gz"
@@ -20,7 +20,7 @@ function PLUGIN:PreInstall(ctx)
     -- local url = "https://raw.githubusercontent.com/arturo-lang/arturo/" .. version .. "/bin/arturo"
 
     -- Replace with your actual download URL pattern
-    local url = "https://example.com/arturo/releases/download/" .. version .. "/arturo"
+    -- local url = "https://example.com/arturo/releases/download/" .. version .. "/arturo"
 
     -- Optional: Fetch checksum for verification
     -- local sha256 = fetch_checksum(version) -- Implement if checksums are available
