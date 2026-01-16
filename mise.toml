@@ -1,10 +1,6 @@
 [env]
 MISE_USE_VERSIONS_HOST = "0"
 
-[tasks. test]
-description = "Run plugin tests - install and execute tool"
-run = "./mise-tasks/test"
-
 [tasks.ci]
 description = "Run all CI checks"
 depends = ["test"]
