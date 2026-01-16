@@ -42,30 +42,6 @@ function PLUGIN:PostInstall(ctx)
     local install_bin = path
     ensure_dir(install_bin)
 
-    local function move_binaries()
-        if is_windows then
-            local move_cmd = string.format(
-                'for /d %%D in ("%s") do if exist "%%~fD\\bin" move /Y "%%~fD\\bin\\*" "%s" >nul',
-                join(path, "arturo-*")
-                    ,
-                install_bin
-            )
-            local res = os.execute(move_cmd)
-            if res ~= 0 then
-                error("Failed to move arturo binaries into " .. install_bin)
-            end
-        else
-            local src_glob = join(path, "arturo-*", "bin", "*")
-            local res = os.execute(string.format('mv %s "%s"', src_glob, install_bin))
-            if res ~= 0 then
-                error("Failed to move arturo binaries into " .. install_bin)
-            end
-            os.execute(string.format('chmod +x "%s"/*', install_bin))
-        end
-    end
-
-    move_binaries()
-
     if install_bin ~= arturo_bin then
         local copy_cmd
         if is_windows then
