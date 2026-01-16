@@ -29,5 +29,6 @@ jobs:
           C:\msys64\usr\bin\bash -lc "pacman -S --noconfirm mingw-w64-x86_64-lua"
       - uses: jdx/mise-action@v2
       - run: mise run ci
+        shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
