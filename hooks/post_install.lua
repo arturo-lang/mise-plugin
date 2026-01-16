@@ -39,7 +39,7 @@ function PLUGIN:PostInstall(ctx)
     ensure_dir(arturo_home)
     ensure_dir(arturo_bin)
 
-    local install_bin = join(path, "bin")
+    local install_bin = path
     ensure_dir(install_bin)
 
     local function move_binaries()
