@@ -3,73 +3,76 @@
 -- Documentation: https://mise.jdx.dev/tool-plugin-development.html#postinstall-hook
 
 function PLUGIN:PostInstall(ctx)
-    -- Available context:
-    -- ctx.rootPath - Root installation path
-    -- ctx.runtimeVersion - Full version string
-    -- ctx.sdkInfo[PLUGIN.name] - SDK information
-
     local sdkInfo = ctx.sdkInfo[PLUGIN.name]
     local path = sdkInfo.path
-    -- local version = sdkInfo.version
+    local sep = package.config:sub(1, 1)
+    local is_windows = RUNTIME and RUNTIME.osType == "Windows"
 
-    -- Example 1: Single binary file (most common)
-    -- The file is downloaded directly, move it to bin/ and make executable
-    os.execute("mkdir -p " .. path .. "/bin")
-
-    local srcFile = path .. "/" .. PLUGIN.name
-    local destFile = path .. "/bin/" .. PLUGIN.name
-
-    -- Move and make executable
-    local result = os.execute("mv " .. srcFile .. " " .. destFile .. " && chmod +x " .. destFile)
-    if result ~= 0 then
-        error("Failed to install " .. PLUGIN.name .. " binary")
+    local function join(...)
+        return table.concat({ ... }, sep)
     end
 
-    -- Verify installation works
-    local testResult = os.execute(destFile .. " --version > /dev/null 2>&1")
-    if testResult ~= 0 then
-        error(PLUGIN.name .. " installation appears to be broken")
+    local function ensure_dir(dir)
+        local cmd
+        if is_windows then
+            cmd = string.format('mkdir "%s" 2>nul 1>nul', dir)
+        else
+            cmd = string.format('mkdir -p "%s"', dir)
+        end
+
+        local res = os.execute(cmd)
+        if res ~= 0 then
+            error("Failed to create directory: " .. dir)
+        end
     end
 
-    -- Example 2: Archive already extracted by mise
-    -- If pre_install returns a .tar.gz or .zip, mise extracts it automatically
-    -- You might just need to move files around:
-    --[[
-    os.execute("mkdir -p " .. path .. "/bin")
-    os.execute("mv " .. path .. "/arturo-*/bin/* " .. path .. "/bin/")
-    os.execute("chmod +x " .. path .. "/bin/*")
-    --]]
-
-    -- Example 3: Multiple binaries
-    --[[
-    os.execute("mkdir -p " .. path .. "/bin")
-    local binaries = {"tool1", "tool2", "tool3"}
-    for _, binary in ipairs(binaries) do
-        os.execute("mv " .. path .. "/" .. binary .. " " .. path .. "/bin/")
-        os.execute("chmod +x " .. path .. "/bin/" .. binary)
+    local function home_dir()
+        local home = os.getenv("HOME") or os.getenv("USERPROFILE")
+        if not home or home == "" then
+            error("Unable to determine home directory for ~/.arturo")
+        end
+        return home
     end
-    --]]
 
-    -- Example 4: No action needed
-    -- If the archive already has the correct structure (bin/ directory),
-    -- you might not need to do anything:
-    --[[
-    -- Archive already contains bin/arturo, just verify it works
-    local testResult = os.execute(path .. "/bin/arturo --version > /dev/null 2>&1")
-    if testResult ~= 0 then
-        error("arturo installation appears to be broken")
-    end
-    --]]
+    local arturo_home = join(home_dir(), ".arturo")
+    local arturo_bin = join(arturo_home, "bin")
+    ensure_dir(arturo_home)
+    ensure_dir(arturo_bin)
 
-    -- Example 5: Platform-specific setup
-    --[[
-    -- RUNTIME object is provided by mise/vfox
-    if RUNTIME.osType ~= "Windows" then
-        -- Unix-like systems: make binaries executable
-        os.execute("chmod +x " .. path .. "/bin/*")
-    else
-        -- Windows-specific setup if needed
-        -- e.g., adding .exe extension or handling batch files
+    local install_bin = join(path, "bin")
+    ensure_dir(install_bin)
+
+    local function move_binaries()
+        if is_windows then
+            local move_cmd = string.format(
+                'for /d %%D in ("%s") do if exist "%%~fD\\bin" move /Y "%%~fD\\bin\\*" "%s" >nul',
+                join(path, "arturo-*")
+                    ,
+                install_bin
+            )
+            local res = os.execute(move_cmd)
+            if res ~= 0 then
+                error("Failed to move arturo binaries into " .. install_bin)
+            end
+        else
+            local src_glob = join(path, "arturo-*", "bin", "*")
+            local res = os.execute(string.format('mv %s "%s"', src_glob, install_bin))
+            if res ~= 0 then
+                error("Failed to move arturo binaries into " .. install_bin)
+            end
+            os.execute(string.format('chmod +x "%s"/*', install_bin))
+        end
     end
-    --]]
+
+    move_binaries()
+
+    if install_bin ~= arturo_bin then
+        local copy_cmd
+        if is_windows then
+            copy_cmd = string.format('copy /Y "%s\\*" "%s" >nul', install_bin, arturo_bin)
+        else
+            copy_cmd = string.format('cp -f %s/* "%s"', install_bin, arturo_bin)
+        end
+        os.execute(copy_cmd)
+    end
 end
