@@ -36,13 +36,13 @@ function PLUGIN:Available(ctx)
         -- version = version:gsub("^v", "")
 
         -- For releases API, you might want:
-        -- local version = tag_info.tag_name:gsub("^v", "")
-        -- local is_prerelease = tag_info.prerelease or false
-        -- local note = is_prerelease and "pre-release" or nil
+        local version = tag_info.tag_name:gsub("^v", "")
+        local is_prerelease = tag_info.prerelease or false
+        local note = is_prerelease and "pre-release" or nil
 
         table.insert(result, {
             version = version,
-            note = nil, -- Optional: "latest", "lts", "pre-release", etc.
+            note = note, -- Optional: "latest", "lts", "pre-release", etc.
             -- addition = {} -- Optional: additional tools/components
         })
     end
