@@ -12,12 +12,31 @@ function PLUGIN:EnvKeys(ctx)
     -- local sdkInfo = ctx.sdkInfo[PLUGIN.name]
     -- local version = sdkInfo.version
 
+    local sep = package.config:sub(1, 1)
+    local function join(...)
+        return table.concat({ ... }, sep)
+    end
+
+    local function home_dir()
+        local home = os.getenv("HOME") or os.getenv("USERPROFILE")
+        if not home or home == "" then
+            error("Unable to determine home directory for ~/.arturo")
+        end
+        return home
+    end
+
+    local arturo_home = join(home_dir(), ".arturo")
+
     -- Basic configuration (minimum required for most tools)
     -- This adds the bin directory to PATH so the tool can be executed
     return {
         {
             key = "PATH",
-            value = mainPath .. "/bin",
+            value = join(arturo_home, "bin"),
+        },
+        {
+            key = "PATH",
+            value = join(arturo_home, "packages", "bin"),
         },
     }
 
