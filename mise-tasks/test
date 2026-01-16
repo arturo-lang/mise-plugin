@@ -10,9 +10,9 @@ mise install arturo@0.10.0
 output=$(mise exec "arturo@0.10.0" -- "arturo" --version)
 echo "arturo output: $output"
 
-if echo "$output" | grep -q 'arturo@0.10.0'; then
+if echo "$output" | grep -Eq '^arturo 0\.10\.0 Arizona Bark \((amd64|arm64)/(linux|macos|windows)\)$'; then
     echo "✓ Tests passed"
 else
-    echo "✗ Test failed: expected version arturo@0.10.0"
+    echo "✗ Test failed: unexpected version string"
     exit 1
 fi
